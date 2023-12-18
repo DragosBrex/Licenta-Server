@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.List;
 
@@ -23,56 +24,134 @@ public class MachineLearningModelController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<MachineLearningModel> createMachineLearningModel(@RequestBody MachineLearningModel model) {
-        MachineLearningModel createdModel = mlService.createMachineLearningModel(model);
-        return new ResponseEntity<>(createdModel, HttpStatus.CREATED);
+    public DeferredResult<ResponseEntity<MachineLearningModel>> createMachineLearningModel(@RequestBody MachineLearningModel model) {
+        DeferredResult<ResponseEntity<MachineLearningModel>> deferredResult = new DeferredResult<>();
+
+        mlService.createMachineLearningModel(model)
+                .whenComplete((createdModel, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(createdModel, HttpStatus.CREATED));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MachineLearningModel> getMachineLearningModelById(@PathVariable Long id) {
-        MachineLearningModel model = mlService.getMachineLearningModelById(id);
-        if (model != null) {
-            return new ResponseEntity<>(model, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public DeferredResult<ResponseEntity<MachineLearningModel>> getMachineLearningModelById(@PathVariable Long id) {
+        DeferredResult<ResponseEntity<MachineLearningModel>> deferredResult = new DeferredResult<>();
+
+        mlService.getMachineLearningModelById(id)
+                .whenComplete((model, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else if (model != null) {
+                        deferredResult.setResult(new ResponseEntity<>(model, HttpStatus.OK));
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @GetMapping("/user/{username}")
-    public ResponseEntity<List<MachineLearningModel>> getMachineLearningModelsByUser(@PathVariable String username) {
-        List<MachineLearningModel> models = mlService.getMachineLearningModelsByUser(username);
-        return new ResponseEntity<>(models, HttpStatus.OK);
+    public DeferredResult<ResponseEntity<List<MachineLearningModel>>> getMachineLearningModelsByUser(@PathVariable String username) {
+        DeferredResult<ResponseEntity<List<MachineLearningModel>>> deferredResult = new DeferredResult<>();
+
+        mlService.getMachineLearningModelsByUser(username)
+                .whenComplete((models, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(models, HttpStatus.OK));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<MachineLearningModel>> getAllMachineLearningModels() {
-        List<MachineLearningModel> models = mlService.getAllMachineLearningModels();
-        return new ResponseEntity<>(models, HttpStatus.OK);
+    public DeferredResult<ResponseEntity<List<MachineLearningModel>>> getAllMachineLearningModels() {
+        DeferredResult<ResponseEntity<List<MachineLearningModel>>> deferredResult = new DeferredResult<>();
+
+        mlService.getAllMachineLearningModels()
+                .whenComplete((models, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(models, HttpStatus.OK));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @Transactional
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMachineLearningModelById(@PathVariable Long id) {
-        mlService.deleteMachineLearningModelById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public DeferredResult<ResponseEntity<Void>> deleteMachineLearningModelById(@PathVariable Long id) {
+        DeferredResult<ResponseEntity<Void>> deferredResult = new DeferredResult<>();
+
+        mlService.deleteMachineLearningModelById(id)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @Transactional
     @DeleteMapping("/deleteName/{modelName}")
-    public ResponseEntity<Void> deleteMachineLearningModelByName(@PathVariable String modelName) {
-        mlService.deleteMachineLearningModelByName(modelName);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public DeferredResult<ResponseEntity<Void>> deleteMachineLearningModelByName(@PathVariable String modelName) {
+        DeferredResult<ResponseEntity<Void>> deferredResult = new DeferredResult<>();
+
+        mlService.deleteMachineLearningModelByName(modelName)
+                .whenComplete((result, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @PostMapping("/train")
-    public ResponseEntity<TrainingTestingResults> trainAndTestMachineLearningModel(@RequestBody MachineLearningModel model) {
-        TrainingTestingResults results = mlService.trainAndTestMachineLearningModel(model);
-        return new ResponseEntity<>(results, HttpStatus.OK);
+    public DeferredResult<ResponseEntity<TrainingTestingResults>> trainAndTestMachineLearningModel(@RequestBody MachineLearningModel model) {
+        DeferredResult<ResponseEntity<TrainingTestingResults>> deferredResult = new DeferredResult<>();
+
+        mlService.trainAndTestMachineLearningModel(model)
+                .whenComplete((results, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(results, HttpStatus.OK));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @PostMapping("/predict")
-    public ResponseEntity<PredictionResults> predictUsingAModel(@RequestBody MachineLearningModel model) {
-        PredictionResults results = mlService.predictUsingAModel(model);
-        return new ResponseEntity<>(results, HttpStatus.OK);
+    public DeferredResult<ResponseEntity<PredictionResults>> predictUsingAModel(@RequestBody MachineLearningModel model) {
+        DeferredResult<ResponseEntity<PredictionResults>> deferredResult = new DeferredResult<>();
+
+        mlService.predictUsingAModel(model)
+                .whenComplete((results, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(results, HttpStatus.OK));
+                    }
+                });
+
+        return deferredResult;
     }
 }

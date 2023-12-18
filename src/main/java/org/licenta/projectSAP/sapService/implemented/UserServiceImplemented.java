@@ -7,6 +7,7 @@ import org.licenta.projectSAP.sapRepository.entity.User;
 import org.licenta.projectSAP.sapService.UserService;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class UserServiceImplemented implements UserService {
@@ -17,29 +18,32 @@ public class UserServiceImplemented implements UserService {
     }
 
     @Override
-    public User createUser(User user) {
-        return userRepository.save(user);
+    public CompletableFuture<User> createUser(User user) {
+        return CompletableFuture.completedFuture(userRepository.save(user));
     }
 
     @Override
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+    public CompletableFuture<User> getUserById(Long id) {
+        return CompletableFuture.completedFuture(userRepository.findById(id).orElse(null));
     }
 
     @Override
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
+    public CompletableFuture<User> getUserByUsername(String username) {
+        return CompletableFuture.completedFuture(userRepository.findByUsername(username));
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public CompletableFuture<List<User>> getAllUsers() {
+        return CompletableFuture.completedFuture(userRepository.findAll());
     }
 
     @Override
     @Transactional
-    public void deleteUserById(Long id) {
+    public CompletableFuture<User> deleteUserById(Long id) {
+        User user =  userRepository.findById(id).get();
         userRepository.deleteById(id);
+
+        return CompletableFuture.completedFuture(user);
     }
 }
 

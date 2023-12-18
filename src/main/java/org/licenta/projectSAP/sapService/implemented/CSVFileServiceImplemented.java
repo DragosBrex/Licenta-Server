@@ -16,6 +16,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CSVFileServiceImplemented implements CSVFileService {
@@ -28,7 +29,7 @@ public class CSVFileServiceImplemented implements CSVFileService {
     }
 
     @Override
-    public CSVFile uploadCSVFile(MultipartFile file) throws IOException {
+    public CompletableFuture<CSVFile> uploadCSVFile(MultipartFile file) throws IOException {
         CSVFile csvFile = new CSVFile();
 
         csvFile.setName(file.getOriginalFilename());
@@ -37,29 +38,32 @@ public class CSVFileServiceImplemented implements CSVFileService {
 
         file.transferTo(new File(csvFile.getPath()));
 
-        return csvFileRepository.save(csvFile);
+        return CompletableFuture.completedFuture(csvFileRepository.save(csvFile));
     }
 
     @Override
-    public CSVFile getCSVFileById(Long id) {
-        return csvFileRepository.findById(id).orElse(null);
+    public CompletableFuture<CSVFile> getCSVFileById(Long id) {
+        return CompletableFuture.completedFuture(csvFileRepository.findById(id).orElse(null));
     }
 
     @Override
-    public List<CSVFile> getAllCSVFiles() {
-        return csvFileRepository.findAll();
+    public CompletableFuture<List<CSVFile>> getAllCSVFiles() {
+        return CompletableFuture.completedFuture(csvFileRepository.findAll());
     }
 
     @Override
-    public void deleteCSVFileById(Long id) {
+    public CompletableFuture<CSVFile> deleteCSVFileById(Long id) {
         File file = new File(defaultPath + csvFileRepository.findById(id).get().getName());
         file.delete();
 
+        CSVFile csvFile = csvFileRepository.findById(id).get();
         csvFileRepository.deleteById(id);
+
+        return CompletableFuture.completedFuture(csvFile);
     }
 
     @Override
-    public List<String> getAllColumnNames(CSVFile file) {
+    public CompletableFuture<List<String>> getAllColumnNames(CSVFile file) {
         List<String> columnNames = new ArrayList<>();
 
         try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
@@ -74,11 +78,11 @@ public class CSVFileServiceImplemented implements CSVFileService {
             e.printStackTrace();
         }
 
-        return columnNames;
+        return CompletableFuture.completedFuture(columnNames);
     }
 
     @Override
-    public List<String> getAllIndexesFromFile(Long id) {
+    public CompletableFuture<List<String>> getAllIndexesFromFile(Long id) {
         CSVFile file = csvFileRepository.findById(id).orElse(null);
 
         List<String> indexes = new ArrayList<>();
@@ -103,7 +107,7 @@ public class CSVFileServiceImplemented implements CSVFileService {
         }
 
         indexes.remove(0);
-        return indexes;
+        return CompletableFuture.completedFuture(indexes);
     }
 
     private boolean hasIndexOrTimeColumn(List<String[]> rows) {

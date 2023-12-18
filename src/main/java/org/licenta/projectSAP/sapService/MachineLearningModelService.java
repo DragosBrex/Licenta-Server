@@ -3,25 +3,33 @@ package org.licenta.projectSAP.sapService;
 import org.licenta.projectSAP.sapRepository.entity.MachineLearningModel;
 import org.licenta.projectSAP.sapRepository.entity.PredictionResults;
 import org.licenta.projectSAP.sapRepository.entity.TrainingTestingResults;
+import org.springframework.scheduling.annotation.Async;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface MachineLearningModelService {
-    MachineLearningModel createMachineLearningModel(MachineLearningModel model);
+    @Async
+    CompletableFuture<MachineLearningModel> createMachineLearningModel(MachineLearningModel model);
 
-    MachineLearningModel getMachineLearningModelById(Long id);
+    @Async
+    CompletableFuture<MachineLearningModel> getMachineLearningModelById(Long id);
 
-    List<MachineLearningModel> getMachineLearningModelsByUser(String username);
+    @Async
+    CompletableFuture<List<MachineLearningModel>> getMachineLearningModelsByUser(String username);
 
-    List<MachineLearningModel> getAllMachineLearningModels();
+    @Async
+    CompletableFuture<List<MachineLearningModel>> getAllMachineLearningModels();
 
-    void deleteMachineLearningModelById(Long id);
+    @Async
+    CompletableFuture<MachineLearningModel> deleteMachineLearningModelById(Long id);
 
-    void deleteMachineLearningModelByName(String modelName);
+    @Async
+    CompletableFuture<MachineLearningModel> deleteMachineLearningModelByName(String modelName);
 
-    TrainingTestingResults trainAndTestMachineLearningModel(MachineLearningModel model);
+    @Async
+    CompletableFuture<TrainingTestingResults> trainAndTestMachineLearningModel(MachineLearningModel model);
 
-    PredictionResults predictUsingAModel(MachineLearningModel model);
-
-    void TestStuff();
+    @Async
+    CompletableFuture<PredictionResults> predictUsingAModel(MachineLearningModel model);
 }

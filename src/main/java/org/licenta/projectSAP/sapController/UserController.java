@@ -5,6 +5,7 @@ import org.licenta.projectSAP.sapService.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @RequestMapping("/users")
 @CrossOrigin(origins = "*")
 public class UserController {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -19,40 +21,88 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.createUser(user);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+    public DeferredResult<ResponseEntity<User>> createUser(@RequestBody User user) {
+        DeferredResult<ResponseEntity<User>> deferredResult = new DeferredResult<>();
+
+        userService.createUser(user)
+                .whenComplete((createdUser, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                    } else {
+                        deferredResult.setResult(ResponseEntity.status(HttpStatus.CREATED).body(createdUser));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
-        if (user != null) {
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public DeferredResult<ResponseEntity<User>> getUserById(@PathVariable Long id) {
+        DeferredResult<ResponseEntity<User>> deferredResult = new DeferredResult<>();
+
+        userService.getUserById(id)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(ResponseEntity.notFound().build());
+                    } else if (user != null) {
+                        deferredResult.setResult(ResponseEntity.ok(user));
+                    } else {
+                        deferredResult.setErrorResult(ResponseEntity.notFound().build());
+                    }
+                });
+
+        return deferredResult;
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
-        User user = userService.getUserByUsername(username);
-        if (user != null) {
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public DeferredResult<ResponseEntity<User>> getUserByUsername(@PathVariable String username) {
+        DeferredResult<ResponseEntity<User>> deferredResult = new DeferredResult<>();
+
+        userService.getUserByUsername(username)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(ResponseEntity.notFound().build());
+                    } else if (user != null) {
+                        deferredResult.setResult(ResponseEntity.ok(user));
+                    } else {
+                        deferredResult.setErrorResult(ResponseEntity.notFound().build());
+                    }
+                });
+
+        return deferredResult;
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public DeferredResult<ResponseEntity<List<User>>> getAllUsers() {
+        DeferredResult<ResponseEntity<List<User>>> deferredResult = new DeferredResult<>();
+
+        userService.getAllUsers()
+                .whenComplete((users, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                    } else {
+                        deferredResult.setResult(ResponseEntity.ok(users));
+                    }
+                });
+
+        return deferredResult;
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUserById(@PathVariable Long id) {
-        userService.deleteUserById(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public DeferredResult<ResponseEntity<User>> deleteUserById(@PathVariable Long id) {
+        DeferredResult<ResponseEntity<User>> deferredResult = new DeferredResult<>();
+
+        userService.deleteUserById(id)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(ResponseEntity.notFound().build());
+                    } else if (user != null) {
+                        deferredResult.setResult(ResponseEntity.noContent().build());
+                    } else {
+                        deferredResult.setErrorResult(ResponseEntity.notFound().build());
+                    }
+                });
+
+        return deferredResult;
     }
 }

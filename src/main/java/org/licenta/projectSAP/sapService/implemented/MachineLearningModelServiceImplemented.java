@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class MachineLearningModelServiceImplemented implements MachineLearningModelService {
@@ -26,63 +27,45 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
         this.csvFileRepository = csvFileRepository;
     }
 
-    public void TestStuff() {
-        try {
-            //String powerShellScript = "python 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Algorithm\\SAPModel.py' 'NICOLAEBOSS' 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Back-End\\FileStorage\\weather.csv' '20' '5' 'false' 'MaxTemp' 'MinTemp MaxTemp' 5 5 0.3 1 10";
-            String powerShellScript = "python 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Algorithm\\SAPPredict.py' 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Back-End\\FileStorage\\weather.csv' '20' '5' 'MaxTemp' 'MinTemp MaxTemp' '5' 'NICOLAEBOSS'";
-
-            String command = "powershell.exe -ExecutionPolicy Bypass -NoProfile -Command " + powerShellScript;
-
-            Process process = Runtime.getRuntime().exec(command);
-
-            InputStream errorStream = process.getErrorStream();
-            BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
-            String line;
-            while ((line = errorReader.readLine()) != null) {
-                System.err.println("Error: " + line);
-            }
-
-            int exitCode = process.waitFor();
-            System.out.println("Command exited with code " + exitCode);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     @Override
-    public MachineLearningModel createMachineLearningModel(MachineLearningModel model) {
-        return machineLearningModelRepository.save(model);
+    public CompletableFuture<MachineLearningModel> createMachineLearningModel(MachineLearningModel model) {
+        return CompletableFuture.completedFuture(machineLearningModelRepository.save(model));
     }
 
     @Override
-    public MachineLearningModel getMachineLearningModelById(Long id) {
-        return machineLearningModelRepository.findById(id).orElse(null);
+    public CompletableFuture<MachineLearningModel> getMachineLearningModelById(Long id) {
+        return CompletableFuture.completedFuture(machineLearningModelRepository.findById(id).orElse(null));
     }
 
     @Override
-    public List<MachineLearningModel> getMachineLearningModelsByUser(String username) {
+    public CompletableFuture<List<MachineLearningModel>> getMachineLearningModelsByUser(String username) {
 //        return machineLearningModelRepository.findByUser(username);
-        return machineLearningModelRepository.findAll();
+        return CompletableFuture.completedFuture(machineLearningModelRepository.findAll());
     }
 
     @Override
-    public List<MachineLearningModel> getAllMachineLearningModels() {
-        return machineLearningModelRepository.findAll();
+    public CompletableFuture<List<MachineLearningModel>> getAllMachineLearningModels() {
+        return CompletableFuture.completedFuture(machineLearningModelRepository.findAll());
     }
 
     @Override
-    public void deleteMachineLearningModelById(Long id) {
+    public CompletableFuture<MachineLearningModel> deleteMachineLearningModelById(Long id) {
+        MachineLearningModel machineLearningModel = machineLearningModelRepository.findById(id).get();
         machineLearningModelRepository.deleteById(id);
+
+        return CompletableFuture.completedFuture(machineLearningModel);
     }
 
     @Override
-    public void deleteMachineLearningModelByName(String modelName) {
+    public CompletableFuture<MachineLearningModel> deleteMachineLearningModelByName(String modelName) {
+        MachineLearningModel machineLearningModel = machineLearningModelRepository.findByName(modelName);
         machineLearningModelRepository.deleteMachineLearningModelByName(modelName);
+
+        return CompletableFuture.completedFuture(machineLearningModel);
     }
 
     @Override
-    public TrainingTestingResults trainAndTestMachineLearningModel(MachineLearningModel model) {
+    public CompletableFuture<TrainingTestingResults> trainAndTestMachineLearningModel(MachineLearningModel model) {
         try {
             String powerShellScript = "python 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Algorithm\\SAPModel.py' '"
                     + model.getName()
@@ -158,11 +141,11 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
         System.out.println(trainingTestingResults);
 
-        return trainingTestingResults;
+        return CompletableFuture.completedFuture(trainingTestingResults);
     }
 
     @Override
-    public PredictionResults predictUsingAModel(MachineLearningModel model) {
+    public CompletableFuture<PredictionResults> predictUsingAModel(MachineLearningModel model) {
         try {
             String powerShellScript = "python 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Algorithm\\SAPPredict.py' '"
                     + model.getName()
@@ -221,7 +204,7 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
         System.out.println(predictionResults);
 
-        return predictionResults;
+        return CompletableFuture.completedFuture(predictionResults);
     }
 
 }
