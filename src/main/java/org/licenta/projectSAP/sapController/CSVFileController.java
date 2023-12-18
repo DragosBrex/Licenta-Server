@@ -65,4 +65,14 @@ public class CSVFileController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/indexes/{id}")
+    public ResponseEntity<List<String>> getAllIndexesFromFile(@PathVariable Long id) {
+        if (id != null) {
+            List<String> indexes = csvFileService.getAllIndexesFromFile(id);
+            return ResponseEntity.ok(indexes);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

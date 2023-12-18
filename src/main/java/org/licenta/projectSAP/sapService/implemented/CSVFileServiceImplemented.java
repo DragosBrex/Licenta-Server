@@ -1,7 +1,10 @@
 package org.licenta.projectSAP.sapService.implemented;
 
 import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
+import org.apache.commons.validator.routines.DateValidator;
+import org.apache.commons.validator.routines.IntegerValidator;
 import org.licenta.projectSAP.sapRepository.CSVFileRepository;
 import org.licenta.projectSAP.sapRepository.entity.CSVFile;
 import org.licenta.projectSAP.sapService.CSVFileService;
@@ -72,5 +75,70 @@ public class CSVFileServiceImplemented implements CSVFileService {
         }
 
         return columnNames;
+    }
+
+    @Override
+    public List<String> getAllIndexesFromFile(Long id) {
+        CSVFile file = csvFileRepository.findById(id).orElse(null);
+
+        List<String> indexes = new ArrayList<>();
+
+        try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
+            List<String[]> rows = reader.readAll();
+
+            boolean hasIndex = hasIndexOrTimeColumn(rows);
+
+            if (hasIndex) {
+                for (String[] row : rows) {
+                    indexes.add(row[0]);
+                }
+            } else {
+                for (int i = 0; i < rows.size(); i++) {
+                    indexes.add(String.valueOf(i));
+                }
+            }
+
+        } catch (IOException | CsvException e) {
+            e.printStackTrace();
+        }
+
+        indexes.remove(0);
+        return indexes;
+    }
+
+    private boolean hasIndexOrTimeColumn(List<String[]> rows) {
+        String firstColumnName = rows.isEmpty() ? null : rows.get(0)[0];
+
+        if(firstColumnName == "" || firstColumnName.toLowerCase().contains("index") || firstColumnName.toLowerCase().contains("time"))
+        {
+            int contor = 0;
+
+            for (String[] row : rows) {
+                if (isNumericOrDate(row[0])) {
+                    contor++;
+                }
+            }
+            if(contor == rows.size() - 1)
+                return true;
+        }
+
+        return false;
+    }
+    private boolean isNumericOrDate(String input) {
+        IntegerValidator integerValidator = IntegerValidator.getInstance();
+        DateValidator dateValidator = DateValidator.getInstance();
+
+        if (integerValidator.isValid(input)) { return true; }
+
+        if (dateValidator.isValid(input, "yyyy-MM-dd HH:mm:ss")) { return true; }
+
+        if (dateValidator.isValid(input, "yyyy/MM/dd HH:mm:ss")) { return true; }
+
+        if (dateValidator.isValid(input, "dd-MM-yyyy HH:mm:ss")) { return  true; }
+
+        if (dateValidator.isValid(input, "dd/MM/yyyy HH:mm:ss")) { return  true; }
+
+
+        return false;
     }
 }

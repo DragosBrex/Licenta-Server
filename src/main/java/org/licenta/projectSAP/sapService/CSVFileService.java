@@ -16,4 +16,6 @@ public interface CSVFileService {
     void deleteCSVFileById(Long id);
 
     List<String> getAllColumnNames(CSVFile file);
+
+    List<String> getAllIndexesFromFile(Long id);
 }

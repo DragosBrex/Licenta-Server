@@ -70,6 +70,12 @@
             <version>5.8</version> <!-- Use the latest version available -->
         </dependency>
 
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.8.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
