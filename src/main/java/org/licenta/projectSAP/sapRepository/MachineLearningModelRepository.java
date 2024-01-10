@@ -10,7 +10,6 @@ import java.util.List;
 @Repository
 public interface MachineLearningModelRepository extends JpaRepository<MachineLearningModel, Long> {
     List<MachineLearningModel> findByUser(User user);
-
     MachineLearningModel findByName(String modelName);
     void deleteMachineLearningModelByName(String modelName);
 }

@@ -1,5 +1,6 @@
 package org.licenta.projectSAP.sapService.implemented;
 
+import jakarta.transaction.Transactional;
 import org.licenta.projectSAP.sapRepository.CSVFileRepository;
 import org.licenta.projectSAP.sapRepository.MachineLearningModelRepository;
 import org.licenta.projectSAP.sapRepository.UserRepository;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Transactional
 public class MachineLearningModelServiceImplemented implements MachineLearningModelService {
 
     private final MachineLearningModelRepository machineLearningModelRepository;
@@ -38,6 +40,11 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
     }
 
     @Override
+    public CompletableFuture<MachineLearningModel> getMachineLearningModelByName(String modelName) {
+        return CompletableFuture.completedFuture(machineLearningModelRepository.findByName(modelName));
+    }
+
+    @Override
     public CompletableFuture<List<MachineLearningModel>> getMachineLearningModelsByUser(String username) {
 //        return machineLearningModelRepository.findByUser(username);
         return CompletableFuture.completedFuture(machineLearningModelRepository.findAll());
@@ -57,6 +64,7 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
     }
 
     @Override
+    @Transactional
     public CompletableFuture<MachineLearningModel> deleteMachineLearningModelByName(String modelName) {
         MachineLearningModel machineLearningModel = machineLearningModelRepository.findByName(modelName);
         machineLearningModelRepository.deleteMachineLearningModelByName(modelName);
@@ -139,8 +147,6 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
         csvFileRepository.save(model.getTrainingAndTestingDataFile());
         machineLearningModelRepository.save(model);
 
-        System.out.println(trainingTestingResults);
-
         return CompletableFuture.completedFuture(trainingTestingResults);
     }
 
@@ -189,7 +195,7 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
                 predictedValues.add(value);
             }
 
-            predictionResults.setPredictedValues(predictedValues);
+            predictionResults.setPredictionValues(predictedValues);
 
             reader.close();
 
@@ -200,7 +206,10 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
         model.setPredictionResults(predictionResults);
 
         csvFileRepository.save(model.getPredictingDataFile());
-        machineLearningModelRepository.findByName(model.getName()).setPredictingDataFile(model.getPredictingDataFile());
+        MachineLearningModel actualModel = machineLearningModelRepository.findByName(model.getName());
+        actualModel.setPredictingDataFile(model.getPredictingDataFile());
+        actualModel.setPredictionResults(model.getPredictionResults());
+        machineLearningModelRepository.save(actualModel);
 
         System.out.println(predictionResults);
 

@@ -49,9 +49,9 @@ public class MachineLearningModel {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Transient
+    @Embedded
     private TrainingTestingResults trainingTestingResults;
 
-    @Transient
+    @Embedded
     private PredictionResults predictionResults;
 }

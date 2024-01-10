@@ -57,6 +57,24 @@ public class MachineLearningModelController {
         return deferredResult;
     }
 
+    @GetMapping("/name={name}")
+    public DeferredResult<ResponseEntity<MachineLearningModel>> getMachineLearningModelByName(@PathVariable String name) {
+        DeferredResult<ResponseEntity<MachineLearningModel>> deferredResult = new DeferredResult<>();
+
+        mlService.getMachineLearningModelByName(name)
+                .whenComplete((model, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else if (model != null) {
+                        deferredResult.setResult(new ResponseEntity<>(model, HttpStatus.OK));
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                    }
+                });
+
+        return deferredResult;
+    }
+
     @GetMapping("/user/{username}")
     public DeferredResult<ResponseEntity<List<MachineLearningModel>>> getMachineLearningModelsByUser(@PathVariable String username) {
         DeferredResult<ResponseEntity<List<MachineLearningModel>>> deferredResult = new DeferredResult<>();
