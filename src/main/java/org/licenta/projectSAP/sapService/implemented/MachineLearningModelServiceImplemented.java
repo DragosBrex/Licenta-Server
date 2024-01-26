@@ -74,6 +74,9 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
     @Override
     public CompletableFuture<TrainingTestingResults> trainAndTestMachineLearningModel(MachineLearningModel model) {
+
+        TrainingTestingResults trainingTestingResults = new TrainingTestingResults();
+
         try {
             String powerShellScript = "python 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Algorithm\\SAPModel.py' '"
                     + model.getName()
@@ -93,9 +96,49 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
             Process process = Runtime.getRuntime().exec(command);
 
+            InputStream inputStream = process.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+
+            List<Double> actualValues = new ArrayList<>();
+            List<Double> predictedValues = new ArrayList<>();
+            boolean passedStart = false;
+            boolean passedEnd = false;
+            boolean passedSeparator = false;
+
+            while ((line = reader.readLine()) != null) {
+                if("results start".equals(line.trim()) && !passedStart) {
+                    passedStart = true;
+                    continue;
+                }
+
+                if("results end".equals(line.trim()) && !passedEnd && passedStart) {
+                    passedEnd = true;
+                }
+
+                if (passedStart && !passedEnd) {
+                    String[] parts = line.split("\\s+");
+
+                    if (parts.length >= 2 && parts[1].matches("-?\\d+(\\.\\d+)?")) {
+                        double value = Double.parseDouble(parts[1]);
+                            if (passedSeparator) {
+                                predictedValues.add(value);
+                            } else {
+                                actualValues.add(value);
+                            }
+                            } else {
+                                if(line.contains("separator")) {
+                                    passedSeparator = true;
+                                }
+                        }
+                    }
+            }
+
+            trainingTestingResults.setActualValues(actualValues.subList(1,actualValues.size()));
+            trainingTestingResults.setPredictedValues(predictedValues);
+
             InputStream errorStream = process.getErrorStream();
             BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
-            String line;
             while ((line = errorReader.readLine()) != null) {
                 System.err.println("Error: " + line);
             }
@@ -103,42 +146,6 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
             int exitCode = process.waitFor();
             System.out.println("Command exited with code " + exitCode);
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        TrainingTestingResults trainingTestingResults = new TrainingTestingResults();
-
-        String trainingResultsPath = "C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Machine Learning Models\\trainingAndTestingOutputs\\" + model.getName() + ".txt";
-
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(trainingResultsPath));
-
-            List<Double> actualValues = new ArrayList<>();
-            List<Double> predictedValues = new ArrayList<>();
-            boolean isSecondArray = false;
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if ("separator".equals(line.trim())) {
-                    isSecondArray = true;
-                    continue;
-                }
-
-                double value = Double.parseDouble(line.trim());
-
-                if (isSecondArray) {
-                    predictedValues.add(value);
-                } else {
-                    actualValues.add(value);
-                }
-            }
-
-            trainingTestingResults.setActualValues(actualValues.subList(1,actualValues.size()));
-            trainingTestingResults.setPredictedValues(predictedValues);
-
-            reader.close();
-
-        } catch (IOException | NumberFormatException e) {
             e.printStackTrace();
         }
 
@@ -152,6 +159,9 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
     @Override
     public CompletableFuture<PredictionResults> predictUsingAModel(MachineLearningModel model) {
+
+        PredictionResults predictionResults = new PredictionResults();
+
         try {
             String powerShellScript = "python 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Algorithm\\SAPPredict.py' '"
                     + model.getName()
@@ -166,9 +176,38 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
             Process process = Runtime.getRuntime().exec(command);
 
+            InputStream inputStream = process.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+
+            List<Double> predictedValues = new ArrayList<>();
+            boolean passedStart = false;
+            boolean passedEnd = false;
+
+            while ((line = reader.readLine()) != null) {
+                if("results start".equals(line.trim()) && !passedStart) {
+                    passedStart = true;
+                    continue;
+                }
+
+                if("results end".equals(line.trim()) && !passedEnd && passedStart) {
+                    passedEnd = true;
+                }
+
+                if (passedStart && !passedEnd) {
+                    String[] parts = line.split("\\s+");
+
+                    if (parts.length >= 2 && parts[1].matches("-?\\d+(\\.\\d+)?")) {
+                        double value = Double.parseDouble(parts[1]);
+                            predictedValues.add(value);
+                    }
+                }
+            }
+
+            predictionResults.setPredictionValues(predictedValues);
+
             InputStream errorStream = process.getErrorStream();
             BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
-            String line;
             while ((line = errorReader.readLine()) != null) {
                 System.err.println("Error: " + line);
             }
@@ -176,30 +215,6 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
             int exitCode = process.waitFor();
             System.out.println("Command exited with code " + exitCode);
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        PredictionResults predictionResults = new PredictionResults();
-
-        String predictionResultsPath = "C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Machine Learning Models\\predictingOutputs\\" + model.getName() + ".txt";
-
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(predictionResultsPath));
-
-            List<Double> predictedValues = new ArrayList<>();
-            boolean isSecondArray = false;
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                double value = Double.parseDouble(line.trim());
-                predictedValues.add(value);
-            }
-
-            predictionResults.setPredictionValues(predictedValues);
-
-            reader.close();
-
-        } catch (IOException | NumberFormatException e) {
             e.printStackTrace();
         }
 
@@ -216,4 +231,55 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
         return CompletableFuture.completedFuture(predictionResults);
     }
 
+    @Override
+    public CompletableFuture<List<String>> getCorrelationVector(String filePath, String signalsToPredict) {
+
+        List<String> correlationVector = new ArrayList<>();
+
+        try {
+            String powerShellScript = "python 'C:\\Users\\drago\\Desktop\\Licenta Brisc Dragos-Nicolae\\Algorithm\\SAPCorrelation.py' '"
+                    + "' '" + filePath
+                    + "' '" + signalsToPredict + "'";
+
+            String command = "powershell.exe -ExecutionPolicy Bypass -NoProfile -Command " + powerShellScript;
+
+            Process process = Runtime.getRuntime().exec(command);
+
+            InputStream inputStream = process.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+
+            boolean passedStart = false;
+            boolean passedEnd = false;
+
+            while ((line = reader.readLine()) != null) {
+                if("correlation start".equals(line.trim()) && !passedStart) {
+                    passedStart = true;
+                    continue;
+                }
+
+                if("correlation end".equals(line.trim()) && !passedEnd && passedStart) {
+                    passedEnd = true;
+                }
+
+                if (passedStart && !passedEnd) {
+                    correlationVector.add(line);
+                }
+
+            }
+
+            InputStream errorStream = process.getErrorStream();
+            BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
+            while ((line = errorReader.readLine()) != null) {
+                System.err.println("Error: " + line);
+            }
+
+            int exitCode = process.waitFor();
+            System.out.println("Command exited with code " + exitCode);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return CompletableFuture.completedFuture(correlationVector);
+    }
 }

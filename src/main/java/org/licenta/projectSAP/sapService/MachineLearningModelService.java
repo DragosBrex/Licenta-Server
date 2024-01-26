@@ -37,4 +37,7 @@ public interface MachineLearningModelService {
 
     @Async
     CompletableFuture<PredictionResults> predictUsingAModel(MachineLearningModel model);
+
+    @Async
+    CompletableFuture<List<String>> getCorrelationVector(String filePath, String signalsToPredict);
 }

@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CSVFileRepository extends JpaRepository<CSVFile, Long> {
+    CSVFile findByName(String name);
 }

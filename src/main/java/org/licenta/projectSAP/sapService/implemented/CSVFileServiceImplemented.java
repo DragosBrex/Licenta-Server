@@ -142,7 +142,44 @@ public class CSVFileServiceImplemented implements CSVFileService {
 
         if (dateValidator.isValid(input, "dd/MM/yyyy HH:mm:ss")) { return  true; }
 
-
         return false;
+    }
+
+    @Override
+    public CompletableFuture<List<String>> getColumnByName(Long fileId, String columnName) {
+        CSVFile file = csvFileRepository.findById(fileId).get();
+
+        List<String> values = new ArrayList<>();
+
+        try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
+            List<String[]> rows = reader.readAll();
+
+            int columnIndex = -1;
+            String[] header = rows.get(0);
+            for (int i = 0; i < header.length; i++) {
+                if (header[i].equals(columnName)) {
+                    columnIndex = i;
+                    break;
+                }
+            }
+
+            if (columnIndex != -1) {
+                for (int i = 1; i < rows.size(); i++) {
+                    String[] row = rows.get(i);
+                    if (columnIndex < row.length) {
+                        values.add(row[columnIndex]);
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException("Column with name '" + columnName + "' not found");
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (CsvException e) {
+            throw new RuntimeException(e);
+        }
+
+        return CompletableFuture.completedFuture(values);
     }
 }

@@ -26,4 +26,7 @@ public interface CSVFileService {
 
     @Async
     CompletableFuture<List<String>> getAllIndexesFromFile(Long id);
+
+    @Async
+    CompletableFuture<List<String>> getColumnByName(Long fileId, String columnName);
 }

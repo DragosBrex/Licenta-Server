@@ -136,4 +136,20 @@ public class CSVFileController {
 
         return deferredResult;
     }
+
+    @GetMapping("/column/{fileId}/{columnName}")
+    public DeferredResult<ResponseEntity<List<String>>> getColumnByName(@PathVariable Long fileId, @PathVariable String columnName) {
+        DeferredResult<ResponseEntity<List<String>>> deferredResult = new DeferredResult<>();
+
+        csvFileService.getColumnByName(fileId, columnName)
+                .whenComplete((indexes, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(ResponseEntity.notFound().build());
+                    } else {
+                        deferredResult.setResult(ResponseEntity.ok(indexes));
+                    }
+                });
+
+        return deferredResult;
+    }
 }

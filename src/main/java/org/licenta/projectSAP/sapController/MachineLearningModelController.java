@@ -1,5 +1,6 @@
 package org.licenta.projectSAP.sapController;
 
+import org.licenta.projectSAP.sapRepository.entity.CorrelationRequest;
 import org.licenta.projectSAP.sapRepository.entity.MachineLearningModel;
 import org.licenta.projectSAP.sapRepository.entity.PredictionResults;
 import org.licenta.projectSAP.sapRepository.entity.TrainingTestingResults;
@@ -162,6 +163,22 @@ public class MachineLearningModelController {
         DeferredResult<ResponseEntity<PredictionResults>> deferredResult = new DeferredResult<>();
 
         mlService.predictUsingAModel(model)
+                .whenComplete((results, throwable) -> {
+                    if (throwable != null) {
+                        deferredResult.setErrorResult(throwable);
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(results, HttpStatus.OK));
+                    }
+                });
+
+        return deferredResult;
+    }
+
+    @PostMapping("/correlation")
+    public DeferredResult<ResponseEntity<List<String>>> getCorrelationVector(@RequestBody CorrelationRequest correlationRequest) {
+        DeferredResult<ResponseEntity<List<String>>> deferredResult = new DeferredResult<>();
+
+        mlService.getCorrelationVector(correlationRequest.getFilePath(), correlationRequest.getSignalsToPredict())
                 .whenComplete((results, throwable) -> {
                     if (throwable != null) {
                         deferredResult.setErrorResult(throwable);
