@@ -102,14 +102,24 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
             List<Double> actualValues = new ArrayList<>();
             List<Double> predictedValues = new ArrayList<>();
+            Double accuracy = 0.0;
             boolean passedStart = false;
             boolean passedEnd = false;
-            boolean passedSeparator = false;
+            boolean passedSeparator1 = false;
+            boolean passedSeparator2 = false;
 
             while ((line = reader.readLine()) != null) {
                 if("results start".equals(line.trim()) && !passedStart) {
                     passedStart = true;
                     continue;
+                }
+
+                if("separator1".equals(line.trim()) && !passedEnd && passedStart) {
+                    passedSeparator1 = true;
+                }
+
+                if("separator2".equals(line.trim()) && !passedEnd && passedStart) {
+                    passedSeparator2 = true;
                 }
 
                 if("results end".equals(line.trim()) && !passedEnd && passedStart) {
@@ -121,21 +131,21 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
 
                     if (parts.length >= 2 && parts[1].matches("-?\\d+(\\.\\d+)?")) {
                         double value = Double.parseDouble(parts[1]);
-                            if (passedSeparator) {
+                            if (passedSeparator1 && !passedSeparator2) {
                                 predictedValues.add(value);
-                            } else {
+                            } else if (passedSeparator2) {
+                                accuracy = value;
+                            }
+                            else {
                                 actualValues.add(value);
                             }
-                            } else {
-                                if(line.contains("separator")) {
-                                    passedSeparator = true;
-                                }
                         }
                     }
             }
 
-            trainingTestingResults.setActualValues(actualValues.subList(1,actualValues.size()));
+            trainingTestingResults.setActualValues(actualValues);
             trainingTestingResults.setPredictedValues(predictedValues);
+            trainingTestingResults.setAccuracy(accuracy);
 
             InputStream errorStream = process.getErrorStream();
             BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));

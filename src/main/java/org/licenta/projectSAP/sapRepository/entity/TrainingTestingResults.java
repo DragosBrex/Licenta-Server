@@ -11,4 +11,5 @@ import java.util.List;
 public class TrainingTestingResults {
     private List<Double> actualValues;
     private List<Double> predictedValues;
+    private Double accuracy;
 }
