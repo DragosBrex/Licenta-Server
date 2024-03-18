@@ -127,20 +127,24 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
                 }
 
                 if (passedStart && !passedEnd) {
-                    String[] parts = line.split("\\s+");
 
-                    if (parts.length >= 2 && parts[1].matches("-?\\d+(\\.\\d+)?")) {
-                        double value = Double.parseDouble(parts[1]);
-                            if (passedSeparator1 && !passedSeparator2) {
-                                predictedValues.add(value);
-                            } else if (passedSeparator2) {
-                                accuracy = value;
-                            }
-                            else {
-                                actualValues.add(value);
-                            }
+                    if(line.matches("\\s*-?\\d+(\\.\\d+)?\\s*")) {
+                        double value = Double.parseDouble(line);
+
+                        if(!passedSeparator1) {
+                            actualValues.add(value);
+                        }
+
+                        if (passedSeparator1 && !passedSeparator2) {
+                            predictedValues.add(value);
+                        }
+
+                        if (passedSeparator2) {
+                            accuracy = value;
                         }
                     }
+                }
+
             }
 
             trainingTestingResults.setActualValues(actualValues);
