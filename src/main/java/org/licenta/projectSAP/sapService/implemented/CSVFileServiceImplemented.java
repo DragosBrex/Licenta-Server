@@ -64,21 +64,36 @@ public class CSVFileServiceImplemented implements CSVFileService {
 
     @Override
     public CompletableFuture<List<String>> getAllColumnNames(CSVFile file) {
-        List<String> columnNames = new ArrayList<>();
+        List<String> numericColumnNames = new ArrayList<>();
 
         try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
             String[] headers = reader.readNext();
 
             if (headers != null) {
-                for (String header : headers) {
-                    columnNames.add(header.trim());
+                String[] nextLine;
+                while ((nextLine = reader.readNext()) != null) {
+                    for (int i = 0; i < headers.length; i++) {
+                        if (isNumeric(nextLine[i].trim())) {
+                            numericColumnNames.add(headers[i].trim());
+                            break;
+                        }
+                    }
                 }
             }
         } catch (IOException | CsvValidationException e) {
             e.printStackTrace();
         }
 
-        return CompletableFuture.completedFuture(columnNames);
+        return CompletableFuture.completedFuture(numericColumnNames);
+    }
+
+    private boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     @Override

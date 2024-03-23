@@ -10,4 +10,5 @@ import java.util.List;
 @Embeddable
 public class PredictionResults {
     private List<Double> predictionValues;
+    private double pastCorrelation;
 }

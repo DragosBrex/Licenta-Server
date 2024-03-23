@@ -164,6 +164,7 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
         }
 
         model.setTrainingTestingResults(trainingTestingResults);
+        model.setPredictionResults(new PredictionResults());
 
         csvFileRepository.save(model.getTrainingAndTestingDataFile());
         machineLearningModelRepository.save(model);
@@ -181,10 +182,11 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
                     + model.getName()
                     + "' '" + model.getPredictingDataFile().getPath()
                     + "' '" + model.getSelectedTimeInterval()
-                    + "' '" +  model.getTimeSpan()
+                    + "' '" + model.getTimeSpan()
                     + "' '" + String.join(" ", model.getSignalsToPredict())
                     + "' '" + String.join(" ", model.getSignalsWithInfluence())
-                    + "' " + model.getPastSteps();
+                    + "' '" + model.getPastSteps()
+                    + "' '" + machineLearningModelRepository.findByName(model.getName()).getTrainingAndTestingDataFile().getPath() + "'";
 
             String command = "powershell.exe -ExecutionPolicy Bypass -NoProfile -Command " + powerShellScript;
 
@@ -195,8 +197,10 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
             String line;
 
             List<Double> predictedValues = new ArrayList<>();
+            double pastCorrelation = 0.0;
             boolean passedStart = false;
             boolean passedEnd = false;
+            boolean passedSeparator = false;
 
             while ((line = reader.readLine()) != null) {
                 if("results start".equals(line.trim()) && !passedStart) {
@@ -208,17 +212,29 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
                     passedEnd = true;
                 }
 
+                if("separator".equals(line.trim()) && !passedEnd && passedStart) {
+                    passedSeparator = true;
+                }
+
                 if (passedStart && !passedEnd) {
                     String[] parts = line.split("\\s+");
 
                     if (parts.length >= 2 && parts[1].matches("-?\\d+(\\.\\d+)?")) {
                         double value = Double.parseDouble(parts[1]);
+
+                        if(!passedSeparator) {
                             predictedValues.add(value);
+                        } else {
+                            System.out.println("Asta e valoarea primita: " + value);
+                            pastCorrelation = value;
+                        }
+
                     }
                 }
             }
 
             predictionResults.setPredictionValues(predictedValues);
+            predictionResults.setPastCorrelation(pastCorrelation);
 
             InputStream errorStream = process.getErrorStream();
             BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStream));
@@ -239,8 +255,6 @@ public class MachineLearningModelServiceImplemented implements MachineLearningMo
         actualModel.setPredictingDataFile(model.getPredictingDataFile());
         actualModel.setPredictionResults(model.getPredictionResults());
         machineLearningModelRepository.save(actualModel);
-
-        System.out.println(predictionResults);
 
         return CompletableFuture.completedFuture(predictionResults);
     }
