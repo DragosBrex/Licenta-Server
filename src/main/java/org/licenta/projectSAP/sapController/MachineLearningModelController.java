@@ -25,7 +25,8 @@ public class MachineLearningModelController {
     }
 
     @PostMapping("/create")
-    public DeferredResult<ResponseEntity<MachineLearningModel>> createMachineLearningModel(@RequestBody MachineLearningModel model) {
+    public DeferredResult<ResponseEntity<MachineLearningModel>> createMachineLearningModel(
+            @RequestBody MachineLearningModel model) {
         DeferredResult<ResponseEntity<MachineLearningModel>> deferredResult = new DeferredResult<>();
 
         mlService.createMachineLearningModel(model)
@@ -77,7 +78,8 @@ public class MachineLearningModelController {
     }
 
     @GetMapping("/user/{username}")
-    public DeferredResult<ResponseEntity<List<MachineLearningModel>>> getMachineLearningModelsByUser(@PathVariable String username) {
+    public DeferredResult<ResponseEntity<List<MachineLearningModel>>> getMachineLearningModelsByUser(
+            @PathVariable String username) {
         DeferredResult<ResponseEntity<List<MachineLearningModel>>> deferredResult = new DeferredResult<>();
 
         mlService.getMachineLearningModelsByUser(username)
@@ -143,7 +145,8 @@ public class MachineLearningModelController {
     }
 
     @PostMapping("/train")
-    public DeferredResult<ResponseEntity<TrainingTestingResults>> trainAndTestMachineLearningModel(@RequestBody MachineLearningModel model) {
+    public DeferredResult<ResponseEntity<TrainingTestingResults>> trainAndTestMachineLearningModel(
+            @RequestBody MachineLearningModel model) {
         DeferredResult<ResponseEntity<TrainingTestingResults>> deferredResult = new DeferredResult<>();
 
         mlService.trainAndTestMachineLearningModel(model)
@@ -175,7 +178,8 @@ public class MachineLearningModelController {
     }
 
     @PostMapping("/correlation")
-    public DeferredResult<ResponseEntity<List<String>>> getCorrelationVector(@RequestBody CorrelationRequest correlationRequest) {
+    public DeferredResult<ResponseEntity<List<String>>> getCorrelationVector(
+            @RequestBody CorrelationRequest correlationRequest) {
         DeferredResult<ResponseEntity<List<String>>> deferredResult = new DeferredResult<>();
 
         mlService.getCorrelationVector(correlationRequest.getFilePath(), correlationRequest.getSignalsToPredict())

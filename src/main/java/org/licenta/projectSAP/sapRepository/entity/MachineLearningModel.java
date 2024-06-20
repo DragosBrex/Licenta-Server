@@ -30,7 +30,6 @@ public class MachineLearningModel {
     private List<String> selectedTimeInterval = new ArrayList<>();
 
     private int timeSpan;
-    private boolean timeDependency;
 
     private List<String> signalsToPredict = new ArrayList<>();
 
@@ -40,9 +39,6 @@ public class MachineLearningModel {
     private int futureSteps;
 
     private Float trainTestSplit;
-
-    @Enumerated(EnumType.STRING)
-    private MLAlgorithms algorithm;
 
     private Long epochs;
 
@@ -55,4 +51,12 @@ public class MachineLearningModel {
 
     @Embedded
     private PredictionResults predictionResults;
+
+    private boolean timeDependency;
+    @Enumerated(EnumType.STRING)
+    private MLAlgorithms algorithm;
 }
+
+
+
+

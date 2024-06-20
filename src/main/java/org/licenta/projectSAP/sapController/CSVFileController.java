@@ -86,7 +86,8 @@ public class CSVFileController {
                         csvFileService.deleteCSVFileById(id)
                                 .whenComplete((result, deleteThrowable) -> {
                                     if (deleteThrowable != null) {
-                                        deferredResult.setErrorResult(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                                        deferredResult.setErrorResult(
+                                                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
                                     } else {
                                         deferredResult.setResult(ResponseEntity.noContent().build());
                                     }
@@ -138,7 +139,8 @@ public class CSVFileController {
     }
 
     @GetMapping("/column/{fileId}/{columnName}")
-    public DeferredResult<ResponseEntity<List<String>>> getColumnByName(@PathVariable Long fileId, @PathVariable String columnName) {
+    public DeferredResult<ResponseEntity<List<String>>> getColumnByName(@PathVariable Long fileId,
+                                                                        @PathVariable String columnName) {
         DeferredResult<ResponseEntity<List<String>>> deferredResult = new DeferredResult<>();
 
         csvFileService.getColumnByName(fileId, columnName)

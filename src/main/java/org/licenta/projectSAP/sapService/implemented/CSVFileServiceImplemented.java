@@ -41,6 +41,7 @@ public class CSVFileServiceImplemented implements CSVFileService {
         return CompletableFuture.completedFuture(csvFileRepository.save(csvFile));
     }
 
+
     @Override
     public CompletableFuture<CSVFile> getCSVFileById(Long id) {
         return CompletableFuture.completedFuture(csvFileRepository.findById(id).orElse(null));
@@ -62,6 +63,25 @@ public class CSVFileServiceImplemented implements CSVFileService {
         return CompletableFuture.completedFuture(csvFile);
     }
 
+//    @Override
+//    public CompletableFuture<List<String>> getAllColumnNames(CSVFile file) {
+//        List<String> columnNames = new ArrayList<>();
+//
+//        try (CSVReader reader = new CSVReader(new FileReader(file.getPath()))) {
+//            String[] headers = reader.readNext();
+//
+//            if (headers != null) {
+//                for (String header : headers) {
+//                    columnNames.add(header.trim());
+//                }
+//            }
+//        } catch (IOException | CsvValidationException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return CompletableFuture.completedFuture(columnNames);
+//    }
+
     @Override
     public CompletableFuture<List<String>> getAllColumnNames(CSVFile file) {
         List<String> numericColumnNames = new ArrayList<>();
@@ -70,30 +90,35 @@ public class CSVFileServiceImplemented implements CSVFileService {
             String[] headers = reader.readNext();
 
             if (headers != null) {
+                int numColumns = headers.length;
+                boolean[] isNumericColumn = new boolean[numColumns];
+                for (int i = 0; i < isNumericColumn.length; i++) {
+                    isNumericColumn[i] = true;
+                }
+
                 String[] nextLine;
                 while ((nextLine = reader.readNext()) != null) {
-                    for (int i = 0; i < headers.length; i++) {
-                        if (isNumeric(nextLine[i].trim())) {
-                            numericColumnNames.add(headers[i].trim());
-                            break;
+                    for (int i = 0; i < numColumns; i++) {
+                        try {
+                            Double.parseDouble(nextLine[i].trim());
+                        } catch (NumberFormatException e) {
+                            isNumericColumn[i] = false;
                         }
+                    }
+                }
+
+                for (int i = 0; i < numColumns; i++) {
+                    if (isNumericColumn[i]) {
+                        numericColumnNames.add(headers[i]);
                     }
                 }
             }
         } catch (IOException | CsvValidationException e) {
             e.printStackTrace();
+            return CompletableFuture.completedFuture(new ArrayList<>());
         }
 
-        return CompletableFuture.completedFuture(numericColumnNames);
-    }
-
-    private boolean isNumeric(String str) {
-        try {
-            Double.parseDouble(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
+        return CompletableFuture.completedFuture((numericColumnNames));
     }
 
     @Override
@@ -128,7 +153,8 @@ public class CSVFileServiceImplemented implements CSVFileService {
     private boolean hasIndexOrTimeColumn(List<String[]> rows) {
         String firstColumnName = rows.isEmpty() ? null : rows.get(0)[0];
 
-        if(firstColumnName == "" || firstColumnName.toLowerCase().contains("index") || firstColumnName.toLowerCase().contains("time"))
+        if(firstColumnName == "" || firstColumnName.toLowerCase().contains("index") ||
+                firstColumnName.toLowerCase().contains("time"))
         {
             int contor = 0;
 
